@@ -1,0 +1,32 @@
+[project]
+name = "chem-ai-team38"
+version = "0.1.0"
+description = "ChemAI: Predict the Cure — MEPhI hackathon, team 38"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "catboost>=1.2.7",
+    "lightgbm>=4.5.0",
+    "matplotlib>=3.10.8",
+    "numpy>=2.3.5",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.8.0",
+    "scipy>=1.16.3",
+    "seaborn>=0.13.2",
+    "xgboost>=2.1.4",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "ruff>=0.14.9",
+]
+
+[tool.ruff]
+line-length = 112
+
+[tool.ruff.lint]
+select = ["W", "E", "F", "I", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["E402"]
