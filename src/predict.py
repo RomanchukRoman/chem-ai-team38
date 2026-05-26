@@ -15,13 +15,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.data import TARGETS
+from src.data import TARGETS, target_slug
 
 ARTIFACT_DIR = Path(__file__).resolve().parents[1] / "artifacts"
-
-
-def _slug(target: str) -> str:
-    return target.replace(", ", "_").replace(" ", "_")
 
 
 def _parse_args() -> argparse.Namespace:
@@ -44,12 +40,12 @@ def _parse_args() -> argparse.Namespace:
 def main() -> None:
     args = _parse_args()
     test_index = np.load(args.artifacts / "test_index.npy")
-    test_ic50 = np.load(args.artifacts / f"test_{_slug('IC50, mM')}.npy")
-    test_cc50 = np.load(args.artifacts / f"test_{_slug('CC50, mM')}.npy")
+    test_ic50 = np.load(args.artifacts / f"test_{target_slug('IC50, mM')}.npy")
+    test_cc50 = np.load(args.artifacts / f"test_{target_slug('CC50, mM')}.npy")
 
     si_strategy = args.si
     if si_strategy in {"model", "blend"}:
-        test_si_model = np.load(args.artifacts / f"test_{_slug('SI')}.npy")
+        test_si_model = np.load(args.artifacts / f"test_{target_slug('SI')}.npy")
     si_ratio = test_cc50 / np.clip(test_ic50, 1e-6, None)
 
     if si_strategy == "ratio":

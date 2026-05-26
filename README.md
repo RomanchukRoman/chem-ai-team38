@@ -15,11 +15,14 @@ chem-ai-team38/
 ├── data/
 │   └── raw/                # train.csv, test.csv, sample_submission.csv (gitignored)
 ├── notebooks/              # исследовательский EDA-ноутбук
+├── scripts/
+│   └── run_full_hpo.sh     # запускает Optuna для всех (model, target)
 ├── src/
 │   ├── seeds.py            # фиксация всех random-состояний
 │   ├── data.py             # загрузка и дедупликация трейна
 │   ├── features.py         # leak-safe препроцессинг + PCA/KMeans
 │   ├── models.py           # CatBoost + LightGBM + XGBoost ensemble
+│   ├── tuning.py           # Optuna HPO per (model, target)
 │   ├── train.py            # CLI: обучение + сохранение артефактов
 │   └── predict.py          # CLI: сборка submission.csv из артефактов
 ├── artifacts/              # OOF/test предсказания + cv_report.json (gitignored)
@@ -49,12 +52,30 @@ cp ~/Downloads/test.csv   data/raw/
 ## Воспроизведение результата
 
 ```bash
+# (опционально) полный поиск гиперпараметров через Optuna — ~1 час
+bash scripts/run_full_hpo.sh
+
 # обучение (3 seeds × 5 folds × {CatBoost, LightGBM, XGBoost} × 3 таргета)
+# автоматически подхватывает best_params, если они сохранены
 uv run python -m src.train --n-seeds 3 --n-splits 5
 
 # сборка submission на основе кэшированных предсказаний
 uv run python -m src.predict --si blend --out submissions/submission.csv
 ```
+
+### Гиперпараметрический поиск
+
+`src.tuning` запускает Optuna-исследование по одной комбинации (модель, таргет):
+
+```bash
+uv run python -m src.tuning --model catboost --target "CC50, mM" --n-trials 50
+uv run python -m src.tuning --model lightgbm --target "IC50, mM" --timeout 1200
+```
+
+Внутри одного trial — `KFold(3)`, log1p-таргет, early-stopping. Лучшие
+параметры сохраняются в `artifacts/best_params/{model}_{target_slug}.json`
+и автоматически подгружаются `make_catboost`/`make_lightgbm`/`make_xgboost`
+при следующем `src.train`.
 
 `predict.py --si` принимает три стратегии для предсказания SI:
 

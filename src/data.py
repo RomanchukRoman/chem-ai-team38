@@ -14,6 +14,11 @@ TARGETS = ("IC50, mM", "CC50, mM", "SI")
 INDEX_COL = "index"
 
 
+def target_slug(target: str) -> str:
+    """Stable filename-safe slug for a target name."""
+    return target.replace(", ", "_").replace(" ", "_")
+
+
 @dataclass(frozen=True)
 class Dataset:
     X_train: pd.DataFrame

@@ -17,7 +17,7 @@ from pathlib import Path
 
 import numpy as np
 
-from src.data import TARGETS, load_dataset
+from src.data import TARGETS, load_dataset, target_slug
 from src.models import FoldConfig, _rmse, train_target
 from src.seeds import SEED, set_seed
 
@@ -92,22 +92,23 @@ def main() -> None:
             verbose=True,
         )
         trained[target] = result.test
-        np.save(args.artifacts / f"oof_{_slug(target)}.npy", result.oof)
-        np.save(args.artifacts / f"test_{_slug(target)}.npy", result.test)
+        np.save(args.artifacts / f"oof_{target_slug(target)}.npy", result.oof)
+        np.save(args.artifacts / f"test_{target_slug(target)}.npy", result.test)
         report["per_target"][target] = {
             "oof_rmse": result.rmse,
             "per_model_rmse": result.per_model_rmse,
+            "weights": result.weights,
         }
-        print(f"  OOF RMSE {target}: {result.rmse:.4f}")
+        print(f"  OOF RMSE {target}: {result.rmse:.4f} (blended)")
         for m, r in result.per_model_rmse.items():
-            print(f"    {m:8s} {r:.4f}")
+            print(f"    {m:8s} rmse={r:.4f}  weight={result.weights[m]:.3f}")
 
     # Compute composite CV score (averaged RMSE over 3 targets) using the SI
     # strategy that wins on OOF — see predict.py for the same logic.
     if all(t in args.targets for t in TARGETS):
-        oof_ic50 = np.load(args.artifacts / f"oof_{_slug('IC50, mM')}.npy")
-        oof_cc50 = np.load(args.artifacts / f"oof_{_slug('CC50, mM')}.npy")
-        oof_si_model = np.load(args.artifacts / f"oof_{_slug('SI')}.npy")
+        oof_ic50 = np.load(args.artifacts / f"oof_{target_slug('IC50, mM')}.npy")
+        oof_cc50 = np.load(args.artifacts / f"oof_{target_slug('CC50, mM')}.npy")
+        oof_si_model = np.load(args.artifacts / f"oof_{target_slug('SI')}.npy")
         y_si = ds.y_train["SI"].to_numpy()
 
         oof_si_ratio = oof_cc50 / np.clip(oof_ic50, 1e-6, None)
