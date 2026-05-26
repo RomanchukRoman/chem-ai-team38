@@ -1,8 +1,11 @@
 """Optuna hyperparameter search per (model, target).
 
 Each study uses a small KFold CV (3 splits) inside the objective to keep
-trials cheap while still penalising overfitting. We tune in log1p space —
-identical to production training — so the search result is directly usable.
+trials cheap while still penalising overfitting. The search itself runs in
+log1p space (legacy production default at the time HPO was set up). Production
+training has since switched to `huber_raw` loss, but the search-space
+hyperparameters (depth, learning_rate, regularisation) are largely loss-agnostic,
+so the saved best_params still improve Huber-mode runs.
 
 Run:
     uv run python -m src.tuning --model catboost --target "CC50, mM" --timeout 1500
@@ -16,8 +19,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 import optuna

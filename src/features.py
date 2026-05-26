@@ -27,7 +27,7 @@ class CorrelationFilter(BaseEstimator, TransformerMixin):
     def __init__(self, threshold: float = 0.98) -> None:
         self.threshold = threshold
 
-    def fit(self, X: pd.DataFrame, y=None) -> "CorrelationFilter":
+    def fit(self, X: pd.DataFrame, y=None) -> CorrelationFilter:
         corr = X.corr().abs()
         upper = corr.where(np.triu(np.ones(corr.shape, dtype=bool), k=1))
         to_drop: set[str] = set()
@@ -60,7 +60,7 @@ class UnsupervisedFeatureExpander(BaseEstimator, TransformerMixin):
         self.n_clusters = n_clusters
         self.random_state = random_state
 
-    def fit(self, X: pd.DataFrame, y=None) -> "UnsupervisedFeatureExpander":
+    def fit(self, X: pd.DataFrame, y=None) -> UnsupervisedFeatureExpander:
         n_pca = min(self.n_pca, X.shape[1], X.shape[0] - 1)
         self.pca_ = PCA(n_components=n_pca, random_state=self.random_state).fit(X)
         self.kmeans_ = KMeans(
